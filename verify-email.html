@@ -194,13 +194,17 @@
       // Verify email with backend
       async function verifyEmail(token) {
         try {
-          const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ token: token }),
-          });
+          const response = await fetch(
+            `${API_BASE_URL}/auth/verify-email?token=${encodeURIComponent(
+              token
+            )}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
 
           const data = await response.json();
 
@@ -244,7 +248,6 @@
 
         showState("error");
       }
-
 
       // Main function - runs when page loads
       function init() {
