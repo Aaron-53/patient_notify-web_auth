@@ -146,7 +146,6 @@
           Great! Your email address has been verified successfully. You can now
           access all features of Patient Notify.
         </p>
-        <a href="#" class="btn" onclick="openApp()">Open Patient Notify App</a>
         <div class="details">
           <strong>What's next?</strong><br />
           • Log in to your Patient Notify account<br />
@@ -163,9 +162,6 @@
           We couldn't verify your email address. The verification link may have
           expired or is invalid.
         </p>
-        <a href="#" class="btn" onclick="resendVerification()"
-          >Request New Verification Link</a
-        >
         <div class="details">
           <strong>Common issues:</strong><br />
           • Verification link has expired (24 hours)<br />
@@ -249,21 +245,6 @@
         showState("error");
       }
 
-      // Resend verification email
-      async function resendVerification() {
-        // For now, just redirect to login/signup page
-        // You can implement a resend API call here
-        alert(
-          "Please log in to your account and request a new verification email from your profile settings."
-        );
-        // Redirect to your main app login page
-        window.location.href = "http://localhost:3000"; // or wherever your main app is
-      }
-
-      // Open the main app
-      function openApp() {
-        window.location.href = "http://localhost:3000"; // or wherever your main app is
-      }
 
       // Main function - runs when page loads
       function init() {
