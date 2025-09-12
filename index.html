@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification - Patient Notify</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+      }
+
+      .logo {
+        font-size: 60px;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+
+      .subtitle {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 16px;
+      }
+
+      .loading {
+        display: block;
+      }
+
+      .success {
+        display: none;
+        color: #4caf50;
+      }
+
+      .error {
+        display: none;
+        color: #f44336;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .icon {
+        font-size: 80px;
+        margin: 20px 0;
+      }
+
+      .success-icon {
+        color: #4caf50;
+      }
+
+      .error-icon {
+        color: #f44336;
+      }
+
+      .message {
+        font-size: 18px;
+        margin: 20px 0;
+        line-height: 1.5;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 20px;
+        transition: transform 0.2s;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .details {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        font-size: 14px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Loading State -->
+      <div id="loading-state" class="loading">
+        <div class="logo">🦷</div>
+        <h1>Patient Notify</h1>
+        <p class="subtitle">Verifying your email address...</p>
+        <div class="spinner"></div>
+        <p>Please wait while we verify your email address.</p>
+      </div>
+
+      <!-- Success State -->
+      <div id="success-state" class="success">
+        <div class="icon success-icon">✅</div>
+        <h1>Email Verified Successfully!</h1>
+        <p class="message">
+          Great! Your email address has been verified successfully. You can now
+          access all features of Patient Notify.
+        </p>
+        <a href="#" class="btn" onclick="openApp()">Open Patient Notify App</a>
+        <div class="details">
+          <strong>What's next?</strong><br />
+          • Log in to your Patient Notify account<br />
+          • Start managing your treatment plans<br />
+          • Set up notifications and reminders
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="error-state" class="error">
+        <div class="icon error-icon">❌</div>
+        <h1 id="error-title">Verification Failed</h1>
+        <p class="message" id="error-message">
+          We couldn't verify your email address. The verification link may have
+          expired or is invalid.
+        </p>
+        <a href="#" class="btn" onclick="resendVerification()"
+          >Request New Verification Link</a
+        >
+        <div class="details">
+          <strong>Common issues:</strong><br />
+          • Verification link has expired (24 hours)<br />
+          • Link has already been used<br />
+          • Invalid or corrupted token<br />
+          • Network connectivity issues
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // API Configuration
+      const API_BASE_URL = "http://localhost:8000";
+
+      // Get token from URL parameters
+      function getTokenFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get("token");
+      }
+
+      // Show different states
+      function showState(state) {
+        document.getElementById("loading-state").style.display = "none";
+        document.getElementById("success-state").style.display = "none";
+        document.getElementById("error-state").style.display = "none";
+
+        document.getElementById(state + "-state").style.display = "block";
+      }
+
+      // Verify email with backend
+      async function verifyEmail(token) {
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/verify-email`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ token: token }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            // Success
+            showState("success");
+          } else {
+            // Error from backend
+            showError(data.detail || "Verification failed");
+          }
+        } catch (error) {
+          // Network or other error
+          console.error("Verification error:", error);
+          showError(
+            "Network error. Please check your connection and try again."
+          );
+        }
+      }
+
+      // Show error state with custom message
+      function showError(message) {
+        document.getElementById("error-message").textContent = message;
+
+        // Customize error title based on message
+        if (message.includes("expired")) {
+          document.getElementById("error-title").textContent =
+            "Verification Link Expired";
+        } else if (
+          message.includes("invalid") ||
+          message.includes("corrupted")
+        ) {
+          document.getElementById("error-title").textContent =
+            "Invalid Verification Link";
+        } else if (message.includes("already")) {
+          document.getElementById("error-title").textContent =
+            "Already Verified";
+        } else {
+          document.getElementById("error-title").textContent =
+            "Verification Failed";
+        }
+
+        showState("error");
+      }
+
+      // Resend verification email
+      async function resendVerification() {
+        // For now, just redirect to login/signup page
+        // You can implement a resend API call here
+        alert(
+          "Please log in to your account and request a new verification email from your profile settings."
+        );
+        // Redirect to your main app login page
+        window.location.href = "http://localhost:3000"; // or wherever your main app is
+      }
+
+      // Open the main app
+      function openApp() {
+        window.location.href = "http://localhost:3000"; // or wherever your main app is
+      }
+
+      // Main function - runs when page loads
+      function init() {
+        const token = getTokenFromURL();
+
+        if (!token) {
+          showError(
+            "No verification token found in the URL. Please check the link from your email."
+          );
+          return;
+        }
+
+        // Add a small delay for better UX
+        setTimeout(() => {
+          verifyEmail(token);
+        }, 1500);
+      }
+
+      // Run when page loads
+      window.addEventListener("DOMContentLoaded", init);
+    </script>
+  </body>
+</html>
